@@ -12,16 +12,22 @@ class Chip
 private:
     BArray<Gate*> garray;
     BArray<Wiring*> warray;
-    BArray<Gate*> gateque[8];   //ques of all the gate and wire events, their length should exceed the largest amount of time it could possibly take to traverse one depth level in the logic system.
-    BArray<Wiring*> wireque[8]; //It needs two dimensions because a single time step is gonna hold many instructions.
+    static BArray<Gate*> gateque[8];   //ques of all the gate and wire events, their length should exceed the largest amount of time it could possibly take to traverse one depth level in the logic system.
+    static BArray<Wiring*> wireque[8]; //It needs two dimensions because a single time step is gonna hold many instructions.
 
     Program program;
     bool programloaded = 0;
-    uint8_t timestep = 0;   //The counter that controls what events to process next, this loops around at the same length of the two arrays for gates and wires.
+    static uint8_t timestep = 0;   //The counter that controls what events to process next, this loops around at the same length of the two arrays for gates and wires.
                             //After processing all the events at the current timestep, it erases those intructions to clear space for the next set.
 public:
 
     Chip();
+    Chip(const Chip&);      //When a chip is created inside another one,
+                            //it's logic circuits need to be copied and allocated.
+                            
+                          
+
+    Chip& operator =(Chip& chip);
 
     // these functions do not happen while the circuit runs and are for modifying the circuit to simulate.
     // the actual simulation is stopped if any of these are called.
