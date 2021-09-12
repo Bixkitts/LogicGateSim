@@ -3,7 +3,7 @@
 #include "Gates.h"
 #include "Wiring.h"
 
-Chip::Chip()
+Chip::Chip(Session* Session)
 {
 
 	

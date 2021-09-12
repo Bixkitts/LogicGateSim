@@ -1,7 +1,8 @@
-#ifndef SESSION
-#define SESSION
+#ifndef CHIP
+#define CHIP
 
 #include "Libraries.h"
+#include "Session.h"
 #include "BArray.h"
 #include "Gates.h"
 #include "Wiring.h"
@@ -10,17 +11,19 @@
 class Chip
 {
 public:
+
+    
     BArray<Gate*> garray;
     BArray<Wiring*> warray;
-    inline static BArray<Gate*> gateque[8] = {};   //ques of all the gate and wire events, their length should exceed the largest amount of time it could possibly take to traverse one depth level in the logic system.
-    inline static BArray<Wiring*> wireque[8] = {}; //It needs two dimensions because a single time step is gonna hold many instructions.
+    //inline static BArray<Gate*> gateque[8] = {};   //ques of all the gate and wire events, their length should exceed the largest amount of time it could possibly take to traverse one depth level in the logic system.
+    //inline static BArray<Wiring*> wireque[8] = {}; //It needs two dimensions because a single time step is gonna hold many instructions.
 
     Program program;
     inline static bool programloaded = 0;
-    inline static uint8_t timestep = 0;   //The counter that controls what events to process next, this loops around at the same length of the two arrays for gates and wires.
+    //inline static uint8_t timestep = 0;   //The counter that controls what events to process next, this loops around at the same length of the two arrays for gates and wires.
                             //After processing all the events at the current timestep, it erases those intructions to clear space for the next set.
 
-    Chip();
+    Chip(Session* Session); //When a chip is constructed, it must be linked to a session which tracks the global timestep and event ques.
     Chip(const Chip&);      //When a chip is created inside another one,
                             //it's logic circuits need to be copied and allocated.
                             
