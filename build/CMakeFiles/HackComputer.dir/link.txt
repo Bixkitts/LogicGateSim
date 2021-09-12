@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/HackComputer.dir/src/Bitstream.cpp.o CMakeFiles/HackComputer.dir/src/Chip.cpp.o CMakeFiles/HackComputer.dir/src/Gates.cpp.o CMakeFiles/HackComputer.dir/src/Main.cpp.o CMakeFiles/HackComputer.dir/src/Wiring.cpp.o -o HackComputer 
