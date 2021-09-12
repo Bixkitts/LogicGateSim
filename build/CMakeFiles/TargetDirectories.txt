@@ -1,0 +1,3 @@
+/home/bixkitts/Source/Repos/LogicGateSim/build/CMakeFiles/rebuild_cache.dir
+/home/bixkitts/Source/Repos/LogicGateSim/build/CMakeFiles/edit_cache.dir
+/home/bixkitts/Source/Repos/LogicGateSim/build/CMakeFiles/HackComputer.dir

@@ -15,7 +15,7 @@ int main()
     CurrentSession->AttachWiring(1, 0, 'b');
     CurrentSession->AttachWiring(2, 0, 'o');
     char program[3] = { '1', '1', '1' };
-    CurrentSession->RunProgram(3, 0, program, 3);
+  //  CurrentSession->RunProgram(3, 0, program, 3);
 
 
     return 0;

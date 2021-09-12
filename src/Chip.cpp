@@ -9,6 +9,9 @@ Chip::Chip()
 	
 }
 
+//BArray<Gate*> Chip::gateque[8];
+//BArray<Wiring*> Chip::wireque[8];
+
 void Chip::SpawnComponent(ElectronicObjects type)
 {
 	switch (type)	
