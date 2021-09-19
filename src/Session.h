@@ -1,26 +1,30 @@
 #ifndef SESSION
 #define SESSION
 
+#include <vector>
+#include <thread>
 #include "BArray.h"
-#include "Gates.h"
-#include "Wiring.h"
+class Chip;
+class Wiring;
+class Gate;
 
-class Session  // A structure to be instantiated in main and hold some global parameters and variables pertaining to the simulation that is
-		// shared across all chips.
+class Session  
 {
 public:
-	BArray<Gate*> gateque[8];
-	BArray<Wiring*> wireque[8];
+	BArray<Chip*> chips;
+	std::vector<std::thread> threads;
 
 	uint8_t timestep;
 	int ChipCount;
+	uint8_t threadcount;
 
-	Session()
-	{
-		timestep = 0;
-		ChipCount = 0;
-		
-	}	
-}
+	char* program;
 
+
+	void AddChip(Chip* chip);	
+	void ProcessChip(int i);
+	void RunProgram(char* program, int length, int chipID, uint64_t wIndex); 	//calls processing for each gate and wire que on each chip (on separate threads) and then advances the timestep by one.
+	void AdvanceTimestep(int t);
+	
+};
 #endif

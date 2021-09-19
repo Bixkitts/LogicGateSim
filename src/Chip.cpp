@@ -3,10 +3,13 @@
 #include "Gates.h"
 #include "Wiring.h"
 
-Chip::Chip(Session* Session)
+Chip::Chip(Session* session)
 {
-
-	
+	LinkedSession = session;
+	ChipID = LinkedSession ->ChipCount;
+	LinkedSession -> ChipCount++;
+	timestep = LinkedSession -> timestep;
+	LinkedSession -> AddChip(this);
 }
 
 void Chip::SpawnComponent(ElectronicObjects type)
@@ -164,55 +167,16 @@ void Chip::DetachWiring(uint32_t wIndex, uint32_t gIndex, char pin)	//detach wir
 	}
 }
 
-void Chip::LoadProgram(std::string file)
-{
-	program.loadprogram(file);
-	programloaded = 1;
-}
-
-void Chip::LoadSession(std::string file)
-{
-
-}
-
-void Chip::SaveSession()
-{
-	std::ofstream nandstream("Chip.gate", std::ofstream::binary);
-	nandstream.write((char*)&garray, 12 * garray.size);
-
-}
 
 //Simulating logic circuit:
 //wires pass on a signal instantly
 //event que of wires to check, and a separate que of gates to check after
 //cue is a time que, gates take time. Every time a gate or wire is outputted to it's added to it's respective cue, unless it's wire to wire
 
-//Run program a program, add the events to the que
-void Chip::RunProgram(int ticks, uint32_t wireindex, char* bits, size_t length)
+void Chip::Impulse(uint64_t wire, bool bit)
 {
-	//start at the wireindex wiring, and set it's state according to the signal. For this we need to read each bit of each char or efficiency, or whatever. Make our own opcodes.
-	//For now I'll just use char '1' and '0' for a digital input. this is essentially the program being read in.
-	std::cout << "Running program...\n";
-	timestep = 0;
-
-	int l = length;
-	for (int i = 0; i < l; i++)	//core loop, this is our program, our signal that changes each timestep. each iteration is a change in signal and in timestep.
-	{
-		if (warray[wireindex]->state != bits[i]-48)		//if the wire state is different to the input program change the state
-			wireque[timestep].Push(warray[wireindex]);
-		ProcessWireque();
-		ProcessGateque();
-
-		gateque[timestep].ClearData();
-		wireque[timestep].ClearData();
-
-		std::cout << "Timestep Advancing...\n";
-
-		if (timestep == 7)
-			timestep = 0;
-		else
-			timestep++;
-	}
+		if (warray[wire]->state != bit)		//if the wire state is different to the input bit change the state
+			wireque[timestep].Push(warray[wire]);
 }
 
 void Chip::AmmendWireque(Wiring* wire)	//Adds a wire to the wireque at the next timestep, used for gates typically
@@ -248,6 +212,11 @@ void Chip::ProcessGateque()
 		if (gate->outputWire->state != result)	
 			AmmendWireque(gate->outputWire);
 	}
+}
+
+void Chip::SyncTimestep()
+{
+	timestep = LinkedSession ->timestep;
 }
 
 Wiring* Chip :: getWire(uint32_t UID)

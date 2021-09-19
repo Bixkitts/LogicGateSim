@@ -1,9 +1,9 @@
 #include "Wiring.h"
 #include "Chip.h"
 
-Wiring::Wiring(Chip* session)
+Wiring::Wiring(Chip* chip)
 {
-	LinkedSession = session;
+	LinkedChip = chip;
 }
 Wiring::~Wiring()
 {
@@ -57,7 +57,7 @@ void Wiring::removeInput()
 void Wiring::setState(bool s)	//sets the state of this wire but also all those attached
 {
 	state = s;
-	LinkedSession->AmmendGateque(LinkedGate);
+	LinkedChip->AmmendGateque(LinkedGate);
 	for (int i = 0; i < LinkedWires.size; i++)
 	{
 		LinkedWires[i]->setState(s);
@@ -67,7 +67,7 @@ void Wiring::setState(bool s)	//sets the state of this wire but also all those a
 void Wiring::toggleState()	//toggles the state of this wire but also all those attached. The state is changed so it adds it's gate to the gateque if it outputs to a gate
 {
 	state = !state;
-	LinkedSession->AmmendGateque(LinkedGate);
+	LinkedChip->AmmendGateque(LinkedGate);
 	for (int i = 0; i < LinkedWires.size; i++)
 	{
 		LinkedWires[i]->toggleState();

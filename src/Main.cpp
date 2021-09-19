@@ -3,8 +3,7 @@
 
 int main()
 {
-
-    Session CurrentSession;
+	Session* CurrentSession = new Session();
 
     Chip* Chip1 = new Chip(CurrentSession);
 
@@ -16,7 +15,7 @@ int main()
     Chip1->AttachWiring(1, 0, 'b');
     Chip1->AttachWiring(2, 0, 'o');
     char program[3] = { '1', '1', '1' };
-    Chip1->RunProgram(3, 0, program, 3);
+	CurrentSession -> RunProgram(program, 3, 0, 0);
 
 
     return 0;

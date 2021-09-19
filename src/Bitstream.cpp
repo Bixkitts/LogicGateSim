@@ -92,7 +92,7 @@ Chip* bitstream::parseHDL(bitstream::HDL hdl)
 			//either way a new chip will be allocated.
 
 
-			Chip* CurrentChip = new Chip();	//allocate a chip on the heap
+		//	Chip* CurrentChip = new Chip();	//allocate a chip on the heap
 
 			i += 4;
 			if(hdl.string[i] == ' ')
