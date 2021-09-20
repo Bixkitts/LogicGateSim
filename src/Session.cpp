@@ -4,6 +4,7 @@
 void Session::AddChip(Chip* chip)
 {
 	chips.Push(chip);
+	ChipCount++;
 }
 void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex)
 {
@@ -11,6 +12,7 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex)
 	{
 		bool bit = program[i]-48;
 		chips[chipID] -> Impulse(wIndex, bit);
+		
 		for(int i = 0; i < ChipCount; i++)
 		{
 			threads.push_back(std::thread(&Session::ProcessChip, this, i));
@@ -18,8 +20,12 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex)
 		for(int i = 0; i < ChipCount; i++)
 		{
 			if (threads[i].joinable())
+			{
 				threads[i].join();
+				std::cout<<"thread joined\n";
+			}
 		}
+		
 
 		AdvanceTimestep(1);
 	}

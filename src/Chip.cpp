@@ -7,7 +7,6 @@ Chip::Chip(Session* session)
 {
 	LinkedSession = session;
 	ChipID = LinkedSession ->ChipCount;
-	LinkedSession -> ChipCount++;
 	timestep = LinkedSession -> timestep;
 	LinkedSession -> AddChip(this);
 }

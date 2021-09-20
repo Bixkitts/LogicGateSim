@@ -17,7 +17,7 @@ public:
 	uint8_t timestep;
 	int ChipCount;
 	uint8_t threadcount;
-
+	std::thread t;
 	char* program;
 
 
