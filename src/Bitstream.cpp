@@ -31,18 +31,28 @@ bitstream::HDL bitstream::loadHDL(std::string file)	//Loads a hdl file into a ch
 	std::ifstream session;
 	std::streampos size;
 
-
-	session.open(file, std::ios::binary);
-	if (session.is_open())
+	try
 	{
-		size = session.tellg();
-		char* bitstream = new char[size];
-		session.seekg(0, std::ios::beg);
-		session.read(bitstream, size);
-		session.close();
-		HDL chip{ bitstream, (size_t)size };
-		return chip;
+		session.open(file, std::ios::binary);
+		if (session.is_open())
+		{
+			size = session.tellg();
+			char* bitstream = new char[size];
+			session.seekg(0, std::ios::beg);
+			session.read(bitstream, size);
+			session.close();
+			HDL chip{ bitstream, (size_t)size, };
+			return chip;
+		}
+		throw 1;
 	}
+	catch (int e)
+	{
+ 		std::cout<<"Could not open file. \n";
+	}
+
+	bitstream::HDL emptyhdl {nullptr, 0};
+	return emptyhdl;
 }
 
 Chip* bitstream::parseHDL(bitstream::HDL hdl)
