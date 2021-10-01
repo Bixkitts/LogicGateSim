@@ -7,11 +7,21 @@
 class Chip;
 class Wiring;
 class Gate;
+class Output;
 
 class Session  
 {
 public:
+	void AddChip(Chip* chip); 	//This is run by a chip when it is instantiated.
+	void ProcessChip(int i);
+	void RunProgram(char* program, int length, int chipID, uint64_t wIndex[], uint8_t busSize, int frequency); 	//calls processing for each gate and wire que on 
+																												//each chip (on separate threads) and then advances the timestep by one.
+ 	void ProcessOutputs(); 	//Cycles through each 
+	void AdvanceTimestep();
+	void AddOutput(Output* o);	
+
 	BArray<Chip*> chips;
+	BArray<Output*> outputs;
 	std::vector<std::thread> threads;
 
 	uint64_t globaltimestep;
@@ -20,12 +30,5 @@ public:
 	uint8_t threadcount;
 	std::thread t;
 	char* program;
-
-
-	void AddChip(Chip* chip);	
-	void ProcessChip(int i);
-	void RunProgram(char* program, int length, int chipID, uint64_t wIndex[], uint8_t busSize, int frequency); 	//calls processing for each gate and wire que on each chip (on separate threads) and then advances the timestep by one.
-	void AdvanceTimestep();
-	
 };
 #endif

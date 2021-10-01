@@ -1,7 +1,8 @@
 #include "Session.h"
 #include "Chip.h"
+#include "Output.h"
 
-#define GET_BIT(x, n) ((((x)[(n) / 8]) & (0x1 << ((n) % 8))) != 0)
+#define GET_BIT(x, n) ((((x)[(n) / 8]) & (0x80 >> ((n) % 8))) != 0)
 
 
 void Session::AddChip(Chip* chip)
@@ -39,7 +40,7 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[
 				t.join();
 			}
 		}
-		
+		ProcessOutputs();	
 	//	threads.clear();
 		AdvanceTimestep();
 	}
@@ -54,6 +55,19 @@ void Session::ProcessChip(int i) 	//this right here is going to be run on a sepa
 		chips[i] -> wireque[timestep].ClearData();
 }
 
+void Session::ProcessOutputs()
+{
+	int s = outputs.size;
+	for(int i = 0; i < s; i++)
+	{
+		outputs[i]->doMyThing();
+	}
+}
+
+void Session::AddOutput(Output* o)
+{
+	outputs.Push(o);
+}
 void Session::AdvanceTimestep()
 {
 	globaltimestep++;

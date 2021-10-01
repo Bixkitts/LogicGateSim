@@ -22,7 +22,6 @@ bool GateAND::output(bool a, bool b)
 
 bool GateOR::output(bool a, bool b)
 {
-    std::cout << "result is " << (a || b) << "\n";
     return (a || b);
 }
 bool GateNOT::output(bool a)

@@ -14,9 +14,9 @@ int main()
     Chip1->AttachWiring(0, 0, 'a');
     Chip1->AttachWiring(1, 0, 'b');
     Chip1->AttachWiring(2, 0, 'o');
-	char max = 127;
+	char max = 24;
 	std::cout << max;
-    char program[1] = { max };
+    char program[2] = { max, max };
 	uint64_t wireindexes[1] = { 0 };
 	CurrentSession -> RunProgram(program, 80, 0, wireindexes, 1, 5);
 

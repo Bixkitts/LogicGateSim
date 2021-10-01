@@ -166,6 +166,14 @@ void Chip::DetachWiring(uint32_t wIndex, uint32_t gIndex, char pin)	//detach wir
 	}
 }
 
+void Chip::MarkInput(Wiring* wire)
+{
+	Inputs.Push(wire);
+}
+void Chip::MarkOutput(Wiring* wire)
+{
+	Outputs.Push(wire);
+}	
 
 //Simulating logic circuit:
 //wires pass on a signal instantly
@@ -204,7 +212,6 @@ void Chip::ProcessGateque()
 	for (int i = 0; i < gateque[timestep].size; i++)
 	{
 		Gate* gate = gateque[timestep][i];
-		std::cout << "A gate is processed OR:" << gate->inputa->state <<" || " << gate->inputb->state << "\n";
 
 		bool result = gate->output(gate->inputa->state, gate->inputb->state);
 
