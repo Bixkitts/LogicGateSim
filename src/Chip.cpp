@@ -11,6 +11,19 @@ Chip::Chip(Session* session)
 	LinkedSession -> AddChip(this);
 }
 
+Chip::Chip()
+{
+	std::cout << "Chip instantiated without a Linked Session!";
+}
+
+void Chip::LinkSession(Session* session)
+{
+	LinkedSession = session;
+	ChipID = LinkedSession ->ChipCount;
+	timestep = LinkedSession -> timestep;
+	LinkedSession -> AddChip(this);
+}
+
 void Chip::SpawnComponent(ElectronicObjects type)
 {
 	switch (type)	

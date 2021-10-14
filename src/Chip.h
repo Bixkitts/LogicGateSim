@@ -13,8 +13,9 @@ class Chip
 {
 public:
     Chip(Session* session); 		//When a chip is constructed, it must be linked to a session which tracks the global timestep and event ques.
- 																
+	Chip(); 																
 
+	void LinkSession(Session* session);
    // Chip(const Chip&);      		//When a chip is created inside another one,
 									//it's logic circuits need to be copied and allocated.                        
 
