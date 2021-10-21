@@ -22,7 +22,7 @@ void Wiring::addOutput(Gate* gate) //wirings can have whatever as their output s
 
 void Wiring::removeOutput(Wiring* wire)	//Search through this wire's connections to remove the correct output from it's list of outputs
 {
-		for (int i; i = LinkedWires.size; i++)
+		for (int i; i < LinkedWires.size; i++)
 		{
 			if (LinkedWires[i] == wire)
 			{
