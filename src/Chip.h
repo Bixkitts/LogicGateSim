@@ -24,6 +24,8 @@ public:
 // these functions do not happen while the circuit runs and are for modifying the circuit to simulate.
 // the actual simulation is stopped if any of these are called.
     void SpawnComponent(ElectronicObjects type);
+	void PushComponent(Wiring* wire);
+	void PushComponent(Gate* gate);
     void DeleteComponent(size_t UID, ElectronicObjects type);
     void AttachWiring(uint32_t Index1, uint32_t Index2);    		//Attach wiring to wiring, making them pass on their state to eachother
     void AttachWiring(uint32_t Index1, uint32_t Index2, char pin);  //Attach wiring to a gate!

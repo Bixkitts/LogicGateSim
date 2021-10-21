@@ -2,6 +2,7 @@
 #define GATES
 
 #include "Libraries.h"
+#include <string>
 class Wiring;
 
 class Gate

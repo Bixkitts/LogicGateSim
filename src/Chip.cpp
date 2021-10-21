@@ -73,6 +73,19 @@ void Chip::SpawnComponent(ElectronicObjects type)
 	std::cout << "Spawned a gate \n";
 }
 
+void Chip::PushComponent(Wiring* wire)
+{
+	warray.Push(wire);
+
+}
+
+void Chip::PushComponent(Gate* gate)
+{
+	garray.Push(gate);
+
+
+}
+
 void Chip::DeleteComponent(size_t UID, ElectronicObjects type)
 {
 	if (type == WIRE)	//we're deleting a wire

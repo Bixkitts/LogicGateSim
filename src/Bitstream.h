@@ -57,7 +57,7 @@ namespace Hardware 	//A namespace to hold functions and structures that revolve 
 //Here follow parsing utilities to be called from anywhere//
 	bool isLetter(char c); 
 	bool isWord(std::string w, char * c, size_t pos); //You pass in the string you want to check for, and a pointer to a position in the hdl char array from parseHDL(...)
-	void readWord(char * c, size_t pos, std::string &s); //Reads chars up until a whitespace and puts them in a string requested string. 
+	int readWord(char * c, size_t pos, std::string &s); //Reads chars up until a non-letter character and puts them in a string '&s'. Returns the length of the word.
 	void skipWhitespace(char * c, counter &Ppos); //Input the index in the c-style string and it'll set it to the next index containing a character, skipping over whitespace.
 	void declareChip(std::string name);
 	void syntaxError(size_t line, size_t pos);
