@@ -5,6 +5,7 @@
 
 Chip::Chip(Session* session)
 {
+	std::cout << "\n Chip instatiated...";
 	LinkedSession = session;
 	ChipID = LinkedSession ->ChipCount;
 	timestep = LinkedSession -> timestep;

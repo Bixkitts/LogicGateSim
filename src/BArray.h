@@ -37,7 +37,6 @@ BArray<T>::BArray()
 	capacity = 1;
 	Data = new T[capacity];
 	size = 0;
-	std::cout << "BArray constructed with capacity " << capacity << "\n";
 }
 
 template <typename T>
