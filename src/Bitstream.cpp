@@ -252,15 +252,11 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 				Iwires = wires.find(name);
 				if(Iwires != wires.end())
 					gate->inputa = Iwires->second;
+				Igates = gates.begin();
 				Igates = gates.find(name);
 				if(Igates != gates.end())
 					gate->inputa = Igates->second->outputWire;
 
-				if(isNotGate == 1) 	//not efficient to check this every time, perhaps there's a workaround
-				{
-					Wiring* outputWire = new Wiring(chip);
-					gate->outputWire = outputWire;
-				}
 
 				if(s[i] == '}')
 				{
@@ -309,10 +305,15 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 						break;
 					Hardware::syntaxError(Ppos.line, i);
 				}
-
 				linksListed = 1;
 			}
-			partsListed = 1;
+			i++;
+			if(s[i] != ';')
+				Hardware::syntaxError(Ppos.line, i);
+			i++;
+			Hardware::skipWhitespace(s, Ppos);
+			if(s[i] == '}')
+				partsListed = 1;
 	}	
 //4.Finally, push all these maps into the chip.
 	Iwires = wires.begin();
