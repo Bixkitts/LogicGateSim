@@ -72,8 +72,4 @@ void Wiring::toggleState()	//toggles the state of this wire but also all those a
 	{
 		LinkedWires[i]->toggleState();
 	}
-	if (LinkedGate == nullptr && LinkedWires.size == 0)
-	{
-		std::cout << "Loose wire outputting " << state << "\n";
-	}
 }

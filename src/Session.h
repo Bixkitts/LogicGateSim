@@ -1,9 +1,11 @@
 #ifndef SESSION
 #define SESSION
 
+#include <string>
 #include <vector>
 #include <thread>
 #include "BArray.h"
+#include <map>
 class Chip;
 class Wiring;
 class Gate;
@@ -20,6 +22,7 @@ public:
 	void AdvanceTimestep();
 	void AddOutput(Output* o);	
 
+	std::map<std::string, Chip*> chipCat; 	// A catalogue of chips to be copied around as needed
 	BArray<Chip*> chips;
 	BArray<Output*> outputs;
 	std::vector<std::thread> threads;

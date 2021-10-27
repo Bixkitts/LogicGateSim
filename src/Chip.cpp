@@ -25,6 +25,16 @@ void Chip::LinkSession(Session* session)
 	LinkedSession -> AddChip(this);
 }
 
+void Chip::ChipInit()
+{
+	for(size_t i = 0; i < garray.size; i++)
+	{
+		AmmendGateque(garray[i]);
+	}
+	ProcessGateque();
+
+}
+
 void Chip::SpawnComponent(ElectronicObjects type)
 {
 	switch (type)	
@@ -231,16 +241,23 @@ void Chip::ProcessWireque()
 void Chip::AmmendGateque(Gate* gate)
 {
 	if(gate != nullptr)
+	{
 		gateque[(timestep + gate->time) % 7].Push(gate);
+	}
 }
 
 void Chip::ProcessGateque()
 {
-	for (int i = 0; i < gateque[timestep].size; i++)
+	int poop = gateque[timestep].size;
+	for (int i = 0; i < poop; i++)
 	{
 		Gate* gate = gateque[timestep][i];
+		bool result;
 
-		bool result = gate->output(gate->inputa->state, gate->inputb->state);
+		if(gate->inputb != nullptr)
+			result = gate->output(gate->inputa->state, gate->inputb->state);
+		else
+			result = gate->output(gate->inputa->state, 0);
 
 		if (gate->outputWire->state != result)	
 			AmmendWireque(gate->outputWire);

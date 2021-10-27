@@ -12,14 +12,14 @@ void LED :: doMyThing()
 {
 	if(wires[0]->state == 1 && wirestate == 0)
 	{
-		std::cout<<"LED" << name << " turns on at timestep " << MySession->globaltimestep << "\n";	
+		std::cout<<"\n>LED " << name << " turns on at timestep " << MySession->globaltimestep << "\n";	
 		wirestate = 1;
 		return;
 	}
 	
 	if(wires[0]->state == 0 && wirestate == 1)
 	{	
-		std::cout<<"LED " << name << " turns off at timestep " << MySession->globaltimestep << "\n";	
+		std::cout<<"\n>LED " << name << " turns off at timestep " << MySession->globaltimestep << "\n";	
 		wirestate = 0;
 	}
 	return;

@@ -22,9 +22,10 @@ bool GateAND::output(bool a, bool b)
 
 bool GateOR::output(bool a, bool b)
 {
+	
     return (a || b);
 }
-bool GateNOT::output(bool a)
+bool GateNOT::output(bool a, bool b)
 {
     return (!a);
 }

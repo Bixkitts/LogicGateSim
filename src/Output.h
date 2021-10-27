@@ -18,6 +18,7 @@ public:
 
 class LED : public Output
 {
+	public:
 	LED(Session* session, std::string n, Wiring* in);
 	void doMyThing();
 

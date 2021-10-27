@@ -36,6 +36,6 @@ class GateOR : public Gate
 };
 class GateNOT : public Gate
 {
-    bool output(bool a) override;
+    bool output(bool a, bool b) override;
 };
 #endif

@@ -23,6 +23,7 @@ public:
 
 // these functions do not happen while the circuit runs and are for modifying the circuit to simulate.
 // the actual simulation is stopped if any of these are called.
+	void ChipInit(); 	//anything that needs to be done on startup before any program is run
     void SpawnComponent(ElectronicObjects type);
 	void PushComponent(Wiring* wire);
 	void PushComponent(Gate* gate);

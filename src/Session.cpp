@@ -12,6 +12,11 @@ void Session::AddChip(Chip* chip)
 }
 void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[], uint8_t busSize, int frequency)
 {
+	for(int i = 0; i<chips.size; i++)
+	{
+		chips[i]->ChipInit();
+
+	}
 	for (int i = 0; i < length; i++)	//core loop, this is our program, our signal that changes each timestep. each iteration is a change in signal and in timestep.
 	{
 		
@@ -25,10 +30,10 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[
 				uint64_t pos2 = j + (busSize * pos1);
 				bool bit = GET_BIT(program, pos2);
 				chips[chipID] -> Impulse(wIndex[j], bit);
-				std::cout << "Impulse bit:" << bit << "\n";
 			}
 		}
-
+		ProcessChip(0);
+/*
 		for(int j = 0; j < ChipCount; j++)
 		{
 			threads.push_back(std::thread(&Session::ProcessChip, this, j));
@@ -40,8 +45,9 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[
 				t.join();
 			}
 		}
+		*/
 		ProcessOutputs();	
-	//	threads.clear();
+		//threads.clear();
 		AdvanceTimestep();
 	}
 
@@ -53,6 +59,7 @@ void Session::ProcessChip(int i) 	//this right here is going to be run on a sepa
 		chips[i] -> ProcessGateque();
 		chips[i] -> gateque[timestep].ClearData();
 		chips[i] -> wireque[timestep].ClearData();
+
 }
 
 void Session::ProcessOutputs()

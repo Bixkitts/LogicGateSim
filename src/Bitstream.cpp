@@ -61,7 +61,7 @@ Hardware::HDL Hardware::loadHDL(char *file)	//Loads a hdl file into a char array
 
 void Hardware::parseHDL(Hardware::HDL hdl, Session* session)
 {
-	std::cout << "\nparseHDL called...";
+	std::cout << "\nParsing HDL file(s)...";
 	bool synerror = 0;										//is there a syntax error
 	int chipcount = 0;	
 
@@ -89,7 +89,6 @@ void Hardware::parseHDL(Hardware::HDL hdl, Session* session)
 
 void Hardware::parseCHIP(char * s, counter &Ppos, Session* session)
 {
-	std::cout << "\nparseCHIP() called...";
 	//a new Chip is declared, everything is built into it until a closing bracket.
 	//every logic gate and chip declared here is put into local scope map.
 	//Chips cannot be defined inside other chips!
@@ -122,7 +121,6 @@ void Hardware::parseCHIP(char * s, counter &Ppos, Session* session)
 void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 {
 
-	std::cout << "\n parsePARTS() called...";
 	size_t& i = Ppos.pos;
 //1. Create string maps for variables declared in the HDL.
 //These will hold pointers to gates and wires under their declared names.
@@ -137,7 +135,6 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 //2. We look for the inputs and outputs IN and OUT.
 //These are in input and output wires.
 //-----IN-------//
-	std::cout << "\n IN wirings...";
 	i+=2;
 	if(s[i] != ' ')
 		Hardware::syntaxError(Ppos.line, i);
@@ -152,6 +149,7 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 		i += Hardware::readWord(s, i, name);	
 		Wiring* wire = new Wiring(chip);
 		wires.insert(std::pair<std::string, Wiring*>(name, wire));
+		chip->MarkInput(wire);
 		if(s[i] == ',')
 		{
 			i++;
@@ -183,6 +181,8 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 		i += Hardware::readWord(s, i, name);	
 		Wiring* wire = new Wiring(chip);
 		wires.insert(std::pair<std::string, Wiring*>(name, wire));
+		chip -> MarkOutput(wire);
+
 		if(s[i] == ',')
 		{
 			i++;
@@ -203,10 +203,8 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 	if(!Hardware::isWord("PARTS:", s, i))
 		Hardware::syntaxError(Ppos.line, i);
 	i += 7;
-	std::cout << "\n i is currently: "<<i;
 	Hardware::skipWhitespace(s, Ppos);
 	//Here we start listing gates and what they link to....
-	std::cout << "\n i is currently: "<<i;
 	bool partsListed = 0;
 	while(partsListed == 0)
 	{
@@ -214,7 +212,6 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 			bool isNotGate = 0;
 			if(Hardware::isWord("OR", s, i))
 			{
-				std::cout << "\n read 'OR'";
 				i+=2;
 				gate = new GateOR();
 			}
@@ -251,12 +248,28 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 				Iwires = wires.begin();
 				Iwires = wires.find(name);
 				if(Iwires != wires.end())
+				{
 					gate->inputa = Iwires->second;
+					gate->inputa->addOutput(gate);
+				}
 				Igates = gates.begin();
 				Igates = gates.find(name);
 				if(Igates != gates.end())
-					gate->inputa = Igates->second->outputWire;
+				{
+					if(Igates->second->outputWire->LinkedGate!=nullptr)
+					{
+						Wiring* inputwire1 = new Wiring(chip);
+						gate->inputa = inputwire1;
+						inputwire1->addOutput(gate);
+						inputwire1->addInput(Igates->second->outputWire);
+						Igates->second->outputWire->addOutput(inputwire1);
+					}
+					else{
+						gate->inputa = Igates->second->outputWire;
+						gate->inputa->addOutput(gate);
 
+					}
+				}
 
 				if(s[i] == '}')
 				{
@@ -274,23 +287,30 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 					Iwires = wires.begin();
 					Iwires = wires.find(name);
 					if(Iwires != wires.end())
+					{
 						gate->inputb = Iwires->second;
+						gate->inputb->addOutput(gate);
+					}
 					Igates = gates.begin();
 					Igates = gates.find(name);
 					if(Igates != gates.end())
+					{
 						gate->inputb = Igates->second->outputWire;
-					
+						gate->inputb->addOutput(gate);
+					}
+
 					if(s[i] == '}')
 					{
 						Wiring* outputWire = new Wiring(chip);
 						gate->outputWire = outputWire;
+						outputWire->addInput(gate);
 						break;
 					}
 
 					if(s[i] != ',')
 						Hardware::syntaxError(Ppos.line, i);
 				}
-				//third parameter- outputWire. This is only made use of when the gate outputs to an OUT wiring.
+				//last parameter- outputWire. This is only made use of when the gate outputs to an OUT wiring.
 				i += 2;
 				i+= Hardware::readWord(s, i, name);
 				Iwires = wires.begin();
@@ -298,6 +318,7 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 				if(Iwires != wires.end())
 				{
 					gate->outputWire = Iwires->second;
+					gate->outputWire->addInput(gate);
 					if(s[i] == '}')
 						break;
 					Hardware::skipWhitespace(s, Ppos);
@@ -316,6 +337,7 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 				partsListed = 1;
 	}	
 //4.Finally, push all these maps into the chip.
+
 	Iwires = wires.begin();
 	Igates = gates.begin();
 	while(Iwires != wires.end())
@@ -328,6 +350,7 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 		chip -> PushComponent(Igates->second);	
 		Igates++;
 	}
+	
 	std::cout << "\n Parsing parts completed successfully!";
 }
 
@@ -353,7 +376,6 @@ bool Hardware::isWord(std::string w, char * c, size_t pos)
 
 int Hardware::readWord(char * c, size_t pos, std::string& s)
 {
-	std::cout << "\nreadWord() called...";
 	std::string s2;
 	int i = 0;
 	
@@ -369,7 +391,6 @@ int Hardware::readWord(char * c, size_t pos, std::string& s)
 		break;
 		//insert error here
 	}
-	std::cout << " \nReading Word '" << s2 << "'";
 	s = s2;
 return i;
 //When parsing you may or may not then want to move the pos forward, do it outside this function.
@@ -377,14 +398,12 @@ return i;
 
 void Hardware::skipWhitespace(char * c, counter &Ppos)
 {
-	std::cout << "\n skipping Whitespace...";
 	size_t& i = Ppos.pos;
 
 	while(c[i] == ' ' || c[i] == 10 || c[i] == 13 || c[i] == 9) 	
 	{
 		if(c[i] == 10)
 		{
-			std::cout << "\n New line in hdl!";
 			Ppos.line++;
 		}
 		i++;
