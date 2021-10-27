@@ -3,13 +3,17 @@
 #include "Gates.h"
 #include "Wiring.h"
 
-Chip::Chip(Session* session)
+Chip::Chip(std::string n, Session* session, bool cat)
 {
 	std::cout << "\n Chip instatiated...";
 	LinkedSession = session;
 	ChipID = LinkedSession ->ChipCount;
 	timestep = LinkedSession -> timestep;
+	name = n;
+	if(cat == 0)
 	LinkedSession -> AddChip(this);
+ 	else
+	LinkedSession -> CatChip("poop", this);
 }
 
 Chip::Chip()
@@ -203,13 +207,13 @@ void Chip::DetachWiring(uint32_t wIndex, uint32_t gIndex, char pin)	//detach wir
 	}
 }
 
-void Chip::MarkInput(Wiring* wire)
+void Chip::MarkInput(std::string name, Wiring* wire)
 {
-	Inputs.Push(wire);
+	Inputs.insert(std::pair<std::string, Wiring*>(name, wire));
 }
-void Chip::MarkOutput(Wiring* wire)
+void Chip::MarkOutput(std::string name, Wiring* wire)
 {
-	Outputs.Push(wire);
+	Outputs.insert(std::pair<std::string, Wiring*>(name, wire));
 }	
 
 //Simulating logic circuit:

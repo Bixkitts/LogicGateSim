@@ -10,6 +10,12 @@ void Session::AddChip(Chip* chip)
 	chips.Push(chip);
 	ChipCount++;
 }
+
+void Session::CatChip(std::string name, Chip* chip)
+{
+	chipCat.insert(std::pair<std::string, Chip*>(name, chip));
+
+}
 void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[], uint8_t busSize, int frequency)
 {
 	for(int i = 0; i<chips.size; i++)

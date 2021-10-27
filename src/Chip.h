@@ -12,7 +12,7 @@
 class Chip
 {
 public:
-    Chip(Session* session); 		//When a chip is constructed, it must be linked to a session which tracks the global timestep and event ques.
+    Chip(std::string n, Session* session, bool cat); 		//When a chip is constructed, it must be linked to a session which tracks the global timestep and event ques.
 	Chip(); 																
 
 	void LinkSession(Session* session);
@@ -33,8 +33,8 @@ public:
     void DetachWiring(uint32_t Index1, uint32_t Index2); 
     void DetachWiring(uint32_t wIndex, uint32_t gIndex, char pin);
   
-	void MarkInput(Wiring* wire); 	//Mark a wire as being and Input or output wire of this chip.
-	void MarkOutput(Wiring* wire); 	//This is semantically useful for interfacing.
+	void MarkInput(std::string name, Wiring* wire); 	//Mark a wire as being and Input or output wire of this chip.
+	void MarkOutput(std::string name, Wiring* wire); 	//This is semantically useful for interfacing.
 	
 // Functions that run during the simulation
 	void Impulse(uint64_t wire, bool bit); // Sends a bit down a wire that'll cause the chip to generate ques for the coming timesteps.
@@ -50,11 +50,12 @@ public:
 	
 // The Variables
 	int ChipID; 				//Session Chip ID
+	std::string name;
 
 	Session* LinkedSession; 	//The Session that this chip belongs to as it is being instantiated.
 
-	BArray<Wiring*> Inputs; 	//These arrays point to the wirings that are to serve as inputs and outputs to the chip.
-	BArray<Wiring*> Outputs; 	//This distinguishes these wires from the rest and allows easy interfacing.
+	std::map<std::string, Wiring*> Inputs; 	//These arrays point to the wirings that are to serve as inputs and outputs to the chip.
+	std::map<std::string, Wiring*> Outputs; 	//This distinguishes these wires from the rest and allows easy interfacing.
 
 	BArray<Gate*> garray; 		//Arrays containing pointers to every wire and gate in the chip.
     BArray<Wiring*> warray; 	//Including the input and output wires.

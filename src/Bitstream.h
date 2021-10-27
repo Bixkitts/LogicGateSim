@@ -41,17 +41,18 @@ namespace Hardware 	//A namespace to hold functions and structures that revolve 
 	};
 	
 	HDL loadHDL(char* file);	//reads a file and returns a HDL object.
+	HDL loadHDL(std::string file);	//reads a file and returns a HDL object.
 
 //------------------------HDL PARSING---------------------------//
-	void parseHDL(HDL hdl, Session* session);	//After creating a HDL object, this function
+	void parseHDL(HDL hdl, Session* session, bool cat);	//After creating a HDL object, this function
 								//Parses it, running the relevant functions
 								//to create the virtual hardware.
 //parsing group of functions. Each of these attend to different types of objects and are called from parseHDL();
 //They interpret their respective HDL sections, create the relevant object(s), link them together locally, 
 //then push them into their appropriate Vectors.
-	void parseCHIP(char * s, counter &Ppos, Session * session);
+	void parseCHIP(char * s, counter &Ppos, Session * session, bool cat);
 	void parsePARTS(char * s,  counter &Ppos, Chip * chip);
-
+	void parseInclude(char * s, counter &Ppos, Session * session);
 
 
 //Here follow parsing utilities to be called from anywhere//
