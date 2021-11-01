@@ -53,6 +53,7 @@ namespace Hardware 	//A namespace to hold functions and structures that revolve 
 	void parseCHIP(char * s, counter &Ppos, Session * session, bool cat);
 	void parsePARTS(char * s,  counter &Ppos, Chip * chip);
 	void parseInclude(char * s, counter &Ppos, Session * session);
+	void parsePartChip();
 
 
 //Here follow parsing utilities to be called from anywhere//

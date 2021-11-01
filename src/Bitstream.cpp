@@ -157,7 +157,7 @@ void Hardware::parseCHIP(char * s, counter &Ppos, Session* session, bool cat)
 
 void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 {
-
+	Session* session = chip->LinkedSession;
 	size_t& i = Ppos.pos;
 //1. Create string maps for variables declared in the HDL.
 //These will hold pointers to gates and wires under their declared names.
@@ -236,77 +236,83 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 	i++;
 	skipWhitespace(s, Ppos);
 
-//3. We look under 'PARTS:' for gates, and run functions to link them together with wires.
+//3. We look under 'PARTS:' for gate or chip interfaces, and run functions to link them together with wires.
 	if(!isWord("PARTS:", s, i))
 		syntaxError(Ppos.line, i);
 	i += 7;
 	skipWhitespace(s, Ppos);
-	//Here we start listing gates and what they link to....
+	//Here we start listing gates/chips and what they link to....
 	bool partsListed = 0;
 	while(partsListed == 0)
 	{
-			Gate* gate;
-			bool isNotGate = 0;
-			if(isWord("OR", s, i))
-			{
-				i+=2;
-				gate = new GateOR();
-			}
-			if(isWord("AND", s, i))
-			{
-				i+=3;
-				gate = new GateAND();
-			}
-			if(isWord("NOT", s, i))
-			{
-				i+=3;
-				gate = new GateNOT();
-				isNotGate = 1;
-			}
+		Gate* gate;
+		int nPartInputs = 1;
+		int nPartOutputs = 1;
+		bool isChip = 0;
+		if(isWord("NAND", s, i))
+		{
+			i+=4;
+			gate = new GateNAND();
+			nPartInputs = 2;
+			nPartOutputs = 1;
+		}
+		else
+		{
+			std::string chipname;
+			readWord(s, i, chipname);
+			Chip* newchip = new Chip(chipname, session, 0);
+			newchip = session->chipCat.find(chipname)->second;
 
-			if(s[i] != ' ')
-				syntaxError(Ppos.line, i);
-			i++;
-			std::string name;
-			i += readWord(s, i, name);
-			//remember to detect a syntax error here.
-			gates.insert(std::pair<std::string, Gate*>(name, gate));
-			if(s[i] != ' ')
-				syntaxError(Ppos.line, i);
-			skipWhitespace(s, Ppos);
-			if(s[i] != '{')
-				syntaxError(Ppos.line, i);
-			i++;
-			bool linksListed = 0;
-			while(linksListed == 0)
+		}
+
+		if(s[i] != ' ')
+			syntaxError(Ppos.line, i);
+		i++;
+		std::string name;
+		i += readWord(s, i, name);
+		//remember to detect a syntax error here.
+		gates.insert(std::pair<std::string, Gate*>(name, gate));
+		if(s[i] != ' ')
+			syntaxError(Ppos.line, i);
+		skipWhitespace(s, Ppos);
+		if(s[i] != '{')
+			syntaxError(Ppos.line, i);
+		i++;
+		bool linksListed = 0;
+		while(linksListed == 0)
+		{
+			//look through each input parameter.
+			//NANDs will always have [0] and [1]
+			for(int x = 0; x < nPartInputs; x++)
 			{
-				//first parameter- inputa. NOT gates are special case.
 				i+= readWord(s, i, name);
 				Iwires = wires.begin();
 				Iwires = wires.find(name);
 				if(Iwires != wires.end())
 				{
-					gate->inputa = Iwires->second;
-					gate->inputa->addOutput(gate);
+					gate->inputs[x] = Iwires->second;
+					gate->inputs[x]->addOutput(gate);
 				}
 				Igates = gates.begin();
 				Igates = gates.find(name);
-				if(Igates != gates.end())
+				//this long 'if' block is to branch new wires to facilitate multiple output gates from one.
+				if(Igates != gates.end()) 					
 				{
-					if(Igates->second->outputWire->LinkedGate!=nullptr)
+					if(Igates->second->outputs[0]->LinkedGate!=nullptr)
 					{
 						Wiring* inputwire1 = new Wiring(chip);
-						gate->inputa = inputwire1;
+						gate->inputs[0] = inputwire1;
 						inputwire1->addOutput(gate);
-						inputwire1->addInput(Igates->second->outputWire);
-						Igates->second->outputWire->addOutput(inputwire1);
+						inputwire1->addInput(Igates->second->outputs[0]);
+						Igates->second->outputs[0]->addOutput(inputwire1);
 					}
 					else{
-						gate->inputa = Igates->second->outputWire;
-						gate->inputa->addOutput(gate);
+						gate->inputs[x] = Igates->second->outputs[0];
+						gate->inputs[x]->addOutput(gate);
 
 					}
-				}
+				} 							
+				//-----------------------------
 
 				if(s[i] == '}')
 				{
@@ -316,62 +322,34 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 				if(s[i] != ',')
 					syntaxError(Ppos.line, i);
 				
-				if(isNotGate == 0)
-				{
-					//second parameter- inputb
-					i += 2;
-					i+= readWord(s, i, name);
-					Iwires = wires.begin();
-					Iwires = wires.find(name);
-					if(Iwires != wires.end())
-					{
-						gate->inputb = Iwires->second;
-						gate->inputb->addOutput(gate);
-					}
-					Igates = gates.begin();
-					Igates = gates.find(name);
-					if(Igates != gates.end())
-					{
-						gate->inputb = Igates->second->outputWire;
-						gate->inputb->addOutput(gate);
-					}
-
-					if(s[i] == '}')
-					{
-						Wiring* outputWire = new Wiring(chip);
-						gate->outputWire = outputWire;
-						outputWire->addInput(gate);
-						break;
-					}
-
-					if(s[i] != ',')
-						syntaxError(Ppos.line, i);
-				}
-				//last parameter- outputWire. This is only made use of when the gate outputs to an OUT wiring.
-				i += 2;
-				i+= readWord(s, i, name);
-				Iwires = wires.begin();
-				Iwires = wires.find(name);
-				if(Iwires != wires.end())
-				{
-					gate->outputWire = Iwires->second;
-					gate->outputWire->addInput(gate);
-					if(s[i] == '}')
-						break;
-					skipWhitespace(s, Ppos);
-					if(s[i] == '}')
-						break;
-					syntaxError(Ppos.line, i);
-				}
-				linksListed = 1;
+			i+=2;	
 			}
-			i++;
-			if(s[i] != ';')
+			
+			//look through each output parameter.
+			//NANDS will always just have one.
+			i+= readWord(s, i, name);
+			Iwires = wires.begin();
+			Iwires = wires.find(name);
+			if(Iwires != wires.end())
+			{
+				gate->outputs[0] = Iwires->second;
+				gate->outputs[0]->addInput(gate);
+				if(s[i] == '}')
+					break;
+				skipWhitespace(s, Ppos);
+				if(s[i] == '}')
+					break;
 				syntaxError(Ppos.line, i);
-			i++;
-			skipWhitespace(s, Ppos);
-			if(s[i] == '}')
-				partsListed = 1;
+			}
+			linksListed = 1;
+		}
+		i++;
+		if(s[i] != ';')
+			syntaxError(Ppos.line, i);
+		i++;
+		skipWhitespace(s, Ppos);
+		if(s[i] == '}')
+			partsListed = 1;
 	}	
 //4.Finally, push all these maps into the chip.
 

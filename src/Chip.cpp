@@ -50,6 +50,7 @@ void Chip::SpawnComponent(ElectronicObjects type)
 		garray.Push(somegate);
 		break;
 	}
+	/*
 	case AND:	
 	{
 		GateAND* somegate = new GateAND();
@@ -68,7 +69,7 @@ void Chip::SpawnComponent(ElectronicObjects type)
 		GateNOT* somegate = new GateNOT();
 		garray.Push(somegate);
 		break;
-	}
+	}*/
 	case WIRE:
 	{
 		Wiring* somewire = new Wiring(this);
@@ -109,14 +110,14 @@ void Chip::DeleteComponent(size_t UID, ElectronicObjects type)
 		//first clear outputs and inputs of this wire of references to it.
 		if (warray[UID]->InputGate != nullptr)	
 		{
-			warray[UID]->InputGate->outputWire = nullptr;
+			warray[UID]->InputGate->outputs[0] = nullptr;
 		}
 		if (warray[UID]->LinkedGate != nullptr)
 		{
-			if (warray[UID]->LinkedGate->inputa == warray[UID])
-				warray[UID]->LinkedGate->inputa = nullptr;
+			if (warray[UID]->LinkedGate->inputs[0] == warray[UID])
+				warray[UID]->LinkedGate->inputs[0] = nullptr;
 			else
-				warray[UID]->LinkedGate->inputb = nullptr;
+				warray[UID]->LinkedGate->inputs[1] = nullptr;
 		}
 		for(int i = 0; i < warray[UID]->LinkedWires.size; i++)
 		{ 
@@ -131,9 +132,9 @@ void Chip::DeleteComponent(size_t UID, ElectronicObjects type)
 		//Else
         //we're deleting a gate
 		//first clear outputs and inputs of this object of references to it
-		garray[UID]->inputa->removeOutput(garray[UID]);
-		garray[UID]->inputb->removeOutput(garray[UID]);
-		garray[UID]->outputWire->removeInput();
+		garray[UID]->inputs[0]->removeOutput(garray[UID]);
+		garray[UID]->inputs[1]->removeOutput(garray[UID]);
+		garray[UID]->outputs[0]->removeInput();
 		//-----------------------------------------------------------------
 		delete garray[UID];
 		garray.Remove(UID);
@@ -150,19 +151,19 @@ void Chip::AttachWiring(uint32_t Index1, uint32_t Index2, char pin)
 	if (pin == 'a')
 	{
 		warray[Index1]->addOutput(garray[Index2]);
-		garray[Index2]->inputa = warray[Index1];
+		garray[Index2]->inputs[0] = warray[Index1];
 		return;
 	}
 	if (pin == 'b')
 	{
 		warray[Index1]->addOutput(garray[Index2]);
-		garray[Index2]->inputb = warray[Index1];
+		garray[Index2]->inputs[1] = warray[Index1];
 		return;
 	}
 	if (pin == 'o')
 	{
 		warray[Index1]->addInput(garray[Index2]);
-		garray[Index2]->outputWire = warray[Index1];
+		garray[Index2]->outputs[0] = warray[Index1];
 		return;
 	}
 }
@@ -194,15 +195,15 @@ void Chip::DetachWiring(uint32_t wIndex, uint32_t gIndex, char pin)	//detach wir
 	if (warray[wIndex]->InputGate == garray[gIndex])
 	{
 		warray[wIndex]->removeInput();
-		garray[gIndex]->outputWire = nullptr;
+		garray[gIndex]->outputs[0] = nullptr;
 	}
 	else
 	{
 		warray[wIndex]->LinkedGate = nullptr;
 		if (pin == 'a')
-			garray[gIndex]->inputa = nullptr;
+			garray[gIndex]->inputs[0] = nullptr;
 		else
-			garray[gIndex]->inputb = nullptr;
+			garray[gIndex]->inputs[1] = nullptr;
 
 	}
 }
@@ -258,13 +259,13 @@ void Chip::ProcessGateque()
 		Gate* gate = gateque[timestep][i];
 		bool result;
 
-		if(gate->inputb != nullptr)
-			result = gate->output(gate->inputa->state, gate->inputb->state);
+		if(gate->inputs[1] != nullptr)
+			result = gate->output();
 		else
-			result = gate->output(gate->inputa->state, 0);
+			result = gate->output();
 
-		if (gate->outputWire->state != result)	
-			AmmendWireque(gate->outputWire);
+		if (gate->outputs[0]->state != result)	
+			AmmendWireque(gate->outputs[0]);
 	}
 }
 
