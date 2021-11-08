@@ -15,9 +15,10 @@ public:
     Wiring* InputWire = nullptr; //The wire/gate that inputs into this wire. Needed to be noted so that if this wire is deleted/disconnected it can reference the object before it instead of checking every object in the sim.
     Gate* InputGate = nullptr;
     bool state = 0; //remember to optimise booleans to save memory ofc. this is the 1/0 state of the wire
-    //uint32_t UID = -1;  //universal ID; where it lies within the session vector of wirings
+	std::string name;
 
     Wiring(Chip* chip);
+	Wiring(std::string n, Chip* chip);
     ~Wiring();
 
     void addOutput(Wiring* wire); //function that ammends a gate to this wiring that cares about it's state so it can pass the signal on to them

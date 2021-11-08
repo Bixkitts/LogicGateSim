@@ -15,7 +15,8 @@ class Session
 {
 public:
 	void AddChip(Chip* chip); 	//This is run by a chip when it is instantiated.
-	void CatChip(std::string name, Chip* chip); 	//catalogues a chip for copying during parsing
+	void CatChip(Chip* chip); 	//This catalogues a chip for copying during parsing
+ 	Chip* SearchCat(std::string s); //Returns a chip pointer from the catalogue by name
 	void ProcessChip(int i);
 	void RunProgram(char* program, int length, int chipID, uint64_t wIndex[], uint8_t busSize, int frequency); 	//calls processing for each gate and wire que on 
 																												//each chip (on separate threads) and then advances the timestep by one.
@@ -23,7 +24,7 @@ public:
 	void AdvanceTimestep();
 	void AddOutput(Output* o);	
 
-	std::map<std::string, Chip*> chipCat; 	// A catalogue of chips to be copied around as needed
+	BArray<Chip*> chipCat; 	// A catalogue of chips to be copied around as needed
 	BArray<Chip*> chips;
 	BArray<Output*> outputs;
 	std::vector<std::thread> threads;

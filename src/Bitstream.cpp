@@ -1,4 +1,5 @@
 #include "Bitstream.h"
+#include "ParseFunctions.cpp"
 #include "Chip.h"
 #include "BArray.h"
 #include <map>
@@ -79,6 +80,7 @@ Hardware::HDL Hardware::loadHDL(std::string file)	//Loads a hdl file into a char
 			session.close();
 			
 			HDL loadedhdl{ bitstream, (size_t)size };
+			loadedhdl.Ppos.pos = 0;
 			return loadedhdl;
 		}
 		throw 1;
@@ -92,105 +94,104 @@ Hardware::HDL Hardware::loadHDL(std::string file)	//Loads a hdl file into a char
 	return emptyhdl;
 }
 
-void Hardware::parseHDL(Hardware::HDL hdl, Session* session, bool cat)
+void Hardware::parseHDL(HDL &hdl, Session* session, bool cat)
 {
+	hdl.cat = cat;
 	std::cout << "\nParsing HDL file(s)...";
 	bool synerror = 0;										//is there a syntax error
 	int chipcount = 0;	
 
-	struct counter Ppos {0 , 0}; 	//Parsing position. Line, then character.										
- 	size_t& i {Ppos.pos};
+ 	size_t& i {hdl.Ppos.pos};
 	//start at the first character, and check each one for anything that might initiate a command.
 	//skip over whitespace and line breaks.
 	for (i = 0; i < hdl.length; i ++)
 	{
-		skipWhitespace(hdl.string, Ppos); //self explanatory. Skip spaces and newlines and returns.
+		skipWhitespace(hdl); //self explanatory. Skip spaces and newlines and returns.
 
-		if (isWord("//", hdl.string, i)) //One line comments.
+		if (isWord("//", hdl)) //One line comments.
 		{
 			i += 2;
 			while (hdl.string[i] != 10)
 				i++;
 			continue;
 		}
-		if(isWord("CHIP", hdl.string, i))
+		if(isWord("CHIP", hdl))
 		{
-			parseCHIP(hdl.string, Ppos, session, cat);
+			std::cout <<"\nIsWord CHIP detected...";
+			parseCHIP(hdl, session);
 		}
-		if(isWord("include:", hdl.string, i))
+		if(isWord("include:", hdl))
 		{
-			parseInclude(hdl.string, Ppos, session);
+			parseInclude(hdl, session);
 		}
 	}
 }
 
-void Hardware::parseCHIP(char * s, counter &Ppos, Session* session, bool cat)
+void Hardware::parseCHIP(HDL &hdl, Session* session)
 {
 	//a new Chip is declared, everything is built into it until a closing bracket.
 	//every logic gate and chip declared here is put into local scope map.
 	//Chips cannot be defined inside other chips!
 	//A definition will be looked up in chip map and hooked in at the declared point,
 	//either way a new chip will be allocated.
-
-	size_t& i = Ppos.pos;
+ 	char * s = hdl.string;
+	size_t& i = hdl.Ppos.pos;
 
 	i += 4;
 	if(s[i] != ' ')
-		syntaxError(1, 1);
+		syntaxError(hdl);
 	i++;
 	std::string name="default";
-	i += readWord(s, i, name);
-	Chip* CurrentChip = new Chip(name, session, cat);	//allocate a chip on the heap. Naturally, it pushes itself to the session passed to the parser.
+	i += readWord(hdl, name);
+	Chip* CurrentChip = new Chip(name, session, hdl.cat);	//allocate a chip on the heap. Naturally, it pushes itself to the session passed to the parser.
 	if(s[i] != ' ')
-		syntaxError(1, 1);
+		syntaxError(hdl);
 	i++;
 	if(s[i] != '{')
-		syntaxError(0, 0);
+		syntaxError(hdl);
 	i++;
 	//The bracket is opened. We skip whitespace and parse it's PARTS
 	//until the next closing bracket.
-	skipWhitespace(s, Ppos);	
- 	parsePARTS(s, Ppos, CurrentChip);
+	skipWhitespace(hdl);	
+ 	parsePARTS(hdl, CurrentChip);
 
 
 }
 
-void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
+void Hardware::parsePARTS(HDL &hdl, Chip* chip)
 {
-	Session* session = chip->LinkedSession;
-	size_t& i = Ppos.pos;
-//1. Create string maps for variables declared in the HDL.
-//These will hold pointers to gates and wires under their declared names.
-//We'll link them all together, then arbitrarily push them into 'chip''s appropriate BArrays.
-	std::map<std::string, Wiring*> wires;	
-	std::map<std::string, Wiring*>::iterator Iwires = wires.begin();
 
-	std::map<std::string, Gate*> gates;	
-	std::map<std::string, Gate*>::iterator Igates = gates.begin();
+	Session* session = chip->LinkedSession;
+	char * s = hdl.string;
+	size_t& i = hdl.Ppos.pos;
+//1. Create string maps for variables declared in the HDL.
+//These will hold pointers to hdl.gates and hdl.wires under their declared names.
+//We'll link them all together, then arbitrarily push them into 'chip''s appropriate BArrays.
 
 
 //2. We look for the inputs and outputs IN and OUT.
-//These are in input and output wires.
+//These are in input and output hdl.wires.
 //-----IN-------//
 	i+=2;
 	if(s[i] != ' ')
-		syntaxError(Ppos.line, i);
+		syntaxError(hdl);
 	i++;
 
 	bool inputsListed = 0;
 	while( inputsListed == 0) 	//A loop to look through the user-defined variables for chip inputs and push them to our local map.
 	{
 		if(!isLetter(s[i]) || isNumber(s[i]))
-			syntaxError(Ppos.line, i);
-		std::string name = "default";
-		i += readWord(s, i, name);	
-		Wiring* wire = new Wiring(chip);
-		wires.insert(std::pair<std::string, Wiring*>(name, wire));
-		chip->MarkInput(name, wire);
+			syntaxError(hdl);
+		//Name and create a new wiring in the chip and mark it as in an input
+		std::string name;
+		i += readWord(hdl, name);	
+		Wiring* wire = new Wiring(name, chip);
+		chip->MarkInput(wire);
+		//------------------
 		if(s[i] == ',')
 		{
 			i++;
-			skipWhitespace(s, Ppos);
+			skipWhitespace(hdl);
 			continue;
 		}
 		if(s[i] == ';')
@@ -198,32 +199,32 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 			inputsListed = 1;
 			break;
 		}
-		syntaxError(Ppos.line, i);
+		syntaxError(hdl);
 	}
 	i++;
-	skipWhitespace(s, Ppos);
+	skipWhitespace(hdl);
 //-----OUT-----//
-	isWord("OUT", s, i);
+	isWord("OUT", hdl);
 	i+=3;
 	if(s[i] != ' ')
-		syntaxError(Ppos.line, i);
+		syntaxError(hdl);
 	i++;
 
 	bool outputsListed = 0;
 	while( outputsListed == 0) 	//A loop to look through the user-defined variables for chip inputs and push them to our local map.
 	{
 		if(!isLetter(s[i])|| isNumber(s[i]))
-			syntaxError(Ppos.line, i);
-		std::string name = "default";
-		i += readWord(s, i, name);	
-		Wiring* wire = new Wiring(chip);
-		wires.insert(std::pair<std::string, Wiring*>(name, wire));
-		chip -> MarkOutput(name, wire);
-
+			syntaxError(hdl);
+		//Read the string, create a wire with that name
+		std::string name;
+		i += readWord(hdl, name);	
+		Wiring* wire = new Wiring(name, chip);
+		chip -> MarkOutput(wire);
+		//
 		if(s[i] == ',')
 		{
 			i++;
-			skipWhitespace(s, Ppos);
+			skipWhitespace(hdl);
 			continue;
 		}
 		if(s[i] == ';')
@@ -231,221 +232,152 @@ void Hardware::parsePARTS(char * s, counter &Ppos, Chip* chip)
 			outputsListed = 1;
 			break;
 		}
-		syntaxError(Ppos.line, i);
+		syntaxError(hdl);
 	}
 	i++;
-	skipWhitespace(s, Ppos);
+	skipWhitespace(hdl);
 
-//3. We look under 'PARTS:' for gate or chip interfaces, and run functions to link them together with wires.
-	if(!isWord("PARTS:", s, i))
-		syntaxError(Ppos.line, i);
+//3. We look under 'PARTS:' for gate or chip interfaces, and run functions to link them together with hdl.wires.
+	if(!isWord("PARTS:", hdl))
+		syntaxError(hdl);
 	i += 7;
-	skipWhitespace(s, Ppos);
-	//Here we start listing gates/chips and what they link to....
+	skipWhitespace(hdl);
+	//Here we start listing hdl.gates/chips and what they link to....
+	
+	//'InOut' temporarily holds all the inputs and outputs
+	//of a NAND gate or a freshly created chip
+	//so we can operate on them in an indifferent manner
+	BArray<Wiring*> InOut;
+	int nInputs;
+	int nOutputs;
+
+	Gate* gate;
+	Chip* newchip;
+
 	bool partsListed = 0;
 	while(partsListed == 0)
 	{
-		Gate* gate;
-		int nPartInputs = 1;
-		int nPartOutputs = 1;
 		bool isChip = 0;
-		if(isWord("NAND", s, i))
+		//a part is declared- it's either a NAND gate or a chip.
+		//
+		if(isWord("NAND", hdl))
 		{
 			i+=4;
-			gate = new GateNAND();
-			nPartInputs = 2;
-			nPartOutputs = 1;
+			if(s[i] != ' ')
+				syntaxError(hdl);
+			i++;
+			std::string name;
+			i += readWord(hdl, name);
+			gate = new GateNAND(name, chip);
+			//these are initialised to null pointers from the fresh gate... for clarity.
+			InOut.Push(gate->inputs[0]);
+			InOut.Push(gate->inputs[1]);
+			nInputs = 2;
+			InOut.Push(gate->outputs[0]);
+			nOutputs = 1;
 		}
 		else
 		{
-			std::string chipname;
-			readWord(s, i, chipname);
-			Chip* newchip = new Chip(chipname, session, 0);
-			newchip = session->chipCat.find(chipname)->second;
+			isChip = 1;
+			std::string chipLookup;
+			i+=readWord(hdl, chipLookup);
+			newchip = new Chip(*session->SearchCat(chipLookup)); 	//Need to get copy constructor perfect for this
+ 			//Push the chip's input and output Wiring pointers to the array for processing
+			for(int x = 0; x < newchip->Inputs.size; x++)
+			{
+ 			 	InOut.Push(newchip->Inputs[x]);
+				nInputs++;
+			}
+			for(int x = 0; x < newchip->Outputs.size; x++)
+			{
+ 			 	InOut.Push(newchip->Outputs[x]);
+				nOutputs++;
+			}
 
+			if(s[i] != ' ')
+				syntaxError(hdl);
+			std::string newName; //The chip is already going to have a name from the catalogue.
+								 //This is the new one that refers to the specific existing instance and not it's Cat entry.
+			i+=readWord(hdl, newName);
+			newchip->name = newName;
 		}
 
 		if(s[i] != ' ')
-			syntaxError(Ppos.line, i);
-		i++;
-		std::string name;
-		i += readWord(s, i, name);
-		//remember to detect a syntax error here.
-		gates.insert(std::pair<std::string, Gate*>(name, gate));
-		if(s[i] != ' ')
-			syntaxError(Ppos.line, i);
-		skipWhitespace(s, Ppos);
+			syntaxError(hdl);
+		skipWhitespace(hdl);
 		if(s[i] != '{')
-			syntaxError(Ppos.line, i);
+			syntaxError(hdl);
 		i++;
 		bool linksListed = 0;
-		while(linksListed == 0)
+
+		for(int x = 0; x < nInputs; x++)
 		{
 			//look through each input parameter.
-			//NANDs will always have [0] and [1]
-			for(int x = 0; x < nPartInputs; x++)
-			{
-				i+= readWord(s, i, name);
-				Iwires = wires.begin();
-				Iwires = wires.find(name);
-				if(Iwires != wires.end())
-				{
-					gate->inputs[x] = Iwires->second;
-					gate->inputs[x]->addOutput(gate);
-				}
-				Igates = gates.begin();
-				Igates = gates.find(name);
-				//this long 'if' block is to branch new wires to facilitate multiple output gates from one.
-				if(Igates != gates.end()) 					
-				{
-					if(Igates->second->outputs[0]->LinkedGate!=nullptr)
-					{
-						Wiring* inputwire1 = new Wiring(chip);
-						gate->inputs[0] = inputwire1;
-						inputwire1->addOutput(gate);
-						inputwire1->addInput(Igates->second->outputs[0]);
-						Igates->second->outputs[0]->addOutput(inputwire1);
-					}
-					else{
-						gate->inputs[x] = Igates->second->outputs[0];
-						gate->inputs[x]->addOutput(gate);
+			//In this little block, the parameter is looked up in the chips.
+			std::string sParam;
+			i+=readWord(hdl, sParam);
+			InOut[x] = parsePartParam(sParam, session);
 
-					}
-				} 							
-				//-----------------------------
-
-				if(s[i] == '}')
-				{
-					break;
-				}
-
-				if(s[i] != ',')
-					syntaxError(Ppos.line, i);
-				
-			i+=2;	
-			}
+			if(s[i] != ',')
+				syntaxError(hdl);
 			
-			//look through each output parameter.
-			//NANDS will always just have one.
-			i+= readWord(s, i, name);
-			Iwires = wires.begin();
-			Iwires = wires.find(name);
-			if(Iwires != wires.end())
-			{
-				gate->outputs[0] = Iwires->second;
-				gate->outputs[0]->addInput(gate);
-				if(s[i] == '}')
-					break;
-				skipWhitespace(s, Ppos);
-				if(s[i] == '}')
-					break;
-				syntaxError(Ppos.line, i);
-			}
-			linksListed = 1;
+		i+=2;	
 		}
+		
+		for(int x = nInputs; x <= InOut.size; x++)
+		{
+			std::cout<<"\nOutputs read into InOut...";
+			//look through each input parameter.
+			//In this little block, the parameter is looked up in the chips.
+			std::string sParam;
+			i+=readWord(hdl, sParam);
+			InOut[x] = parsePartParam(sParam, session);
+
+			if(s[i] == '}')
+			{
+				std::cout<<"\nbreaking from Outputs loop";
+				break;
+			}
+			if(s[i] != ',')
+				syntaxError(hdl);
+			
+		i+=2;	
+		}
+	
 		i++;
 		if(s[i] != ';')
-			syntaxError(Ppos.line, i);
+			syntaxError(hdl);
 		i++;
-		skipWhitespace(s, Ppos);
+		skipWhitespace(hdl);
+		//To finish a part and it's I/O, copy the I/O BArray from here into it...
+		if(isChip == 0)
+			gate->transferIO(&InOut[0]);
+		else
+			chip->transferIO(&InOut[0]);
+
 		if(s[i] == '}')
 			partsListed = 1;
 	}	
-//4.Finally, push all these maps into the chip.
-
-	Iwires = wires.begin();
-	Igates = gates.begin();
-	while(Iwires != wires.end())
-	{
-		chip -> PushComponent(Iwires->second);	
-		Iwires++;
-	}
-	while(Igates != gates.end())
-	{
-		chip -> PushComponent(Igates->second);	
-		Igates++;
-	}
 	
-	std::cout << "\n Parsing parts completed successfully!";
+	std::cout << "\n Parsing parts completed successfully!\n";
 }
 
-void Hardware::parseInclude(char * s, counter &Ppos, Session * session)
+void Hardware::parseInclude(HDL &hdl, Session * session)
 {
-	size_t& i = Ppos.pos;
+	char * s = hdl.string;
+	size_t& i = hdl.Ppos.pos;
 	i+=8;
 	if(s[i] !=' ')
-		syntaxError(Ppos.line, i);
+		syntaxError(hdl);
 	i++;
 	std::string file;
-	i+=readWord(s, i, file);
+	i+=readWord(hdl, file);
 	HDL newhdl = loadHDL(file);
 	parseHDL(newhdl, session, 1);
+
 	if(s[i] != ';')
-		syntaxError(Ppos.line, i);
+		syntaxError(hdl);
 	i++;
-	skipWhitespace(s, Ppos);
+	skipWhitespace(hdl);
+	std::cout<<"\nparseInclude over\n";
 }
-
-bool Hardware::isLetter(char c)
-{
-	return (c > 64 && c <91)||(c > 96 && c < 123);	//checks if a character is an uppercase or lowercase letter
-}
-
-bool Hardware::isNumber(char c)
-{
-	return (c > 47 && c < 58);
-}
-bool Hardware::isWord(std::string w, char * c, size_t pos)
-{
-	for(int i = 0; i < w.length(); i++)
-	{
-		if(w[i] != c[pos + i])
-			return 0;
-	}
-	return 1;
-//When parsing you may or may not then want to move the pos forward, do it outside this function.
-}
-
-int Hardware::readWord(char * c, size_t pos, std::string& s)
-{
-	std::string s2;
-	int i = 0;
-	
-	while(isLetter(c[pos+i])|| isNumber(c[pos+i]))
-	{
-		
-		if(i<32)
-		{
-			s2.push_back(c[pos+i]);
-			i++;
-			continue;
-		}
-		break;
-		//insert error here
-	}
-	s = s2;
-return i;
-//When parsing you may or may not then want to move the pos forward, do it outside this function.
-}
-
-void Hardware::skipWhitespace(char * c, counter &Ppos)
-{
-	size_t& i = Ppos.pos;
-
-	while(c[i] == ' ' || c[i] == 10 || c[i] == 13 || c[i] == 9) 	
-	{
-		if(c[i] == 10)
-		{
-			Ppos.line++;
-		}
-		i++;
-	}
-	return;
-}
-
-void Hardware::syntaxError(size_t line, size_t pos)
-{
-	std::cout << "\nSyntax error at: line " << line+1 << "\n";
-	exit(EXIT_FAILURE);
-}
-

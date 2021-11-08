@@ -3,7 +3,9 @@
 
 #include "Libraries.h"
 #include <string>
+#include "BArray.h"
 class Wiring;
+class Chip;
 
 class Gate
 {
@@ -14,12 +16,18 @@ public:
     Wiring* inputs[2] = {nullptr, nullptr};   //All of these are just Universal IDs for wires within the session in the "warray" vector
     Wiring* outputs[1] = {nullptr};
     uint8_t time = 1;   //how far down the gateque the gate gives an output
+	std::string name;
 
+	void transferIO(Wiring** w); 	//Transfers the input/output addresses 1:1 from an array of pointers.
+	void setInput(int x, Wiring* w);
+	void setOutput(int x, Wiring* w);
     virtual bool output();
 };
 
 class GateNAND : public Gate
 {
+	public:
+	GateNAND(std::string n, Chip* c);
     bool output() override;
 };
 /*

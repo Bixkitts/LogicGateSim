@@ -4,6 +4,13 @@
 Wiring::Wiring(Chip* chip)
 {
 	LinkedChip = chip;
+	chip->PushComponent(this);
+}
+Wiring::Wiring(std::string n, Chip* chip)
+{
+	name = n;
+	LinkedChip = chip;
+	chip->PushComponent(this);
 }
 Wiring::~Wiring()
 {

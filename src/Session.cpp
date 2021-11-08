@@ -7,15 +7,32 @@
 
 void Session::AddChip(Chip* chip)
 {
+	std::cout<<"\nChip added...";
 	chips.Push(chip);
 	ChipCount++;
 }
 
-void Session::CatChip(std::string name, Chip* chip)
+void Session::CatChip(Chip* chip)
 {
-	chipCat.insert(std::pair<std::string, Chip*>(name, chip));
+	std::cout<<"\nChip Catted...";
+	chipCat.Push(chip);
 
 }
+
+Chip* Session::SearchCat(std::string s)
+{
+ 	for(int x = 0; x < chipCat.size; x++)
+	{
+		if(s == chipCat[x]->name)
+		{
+			return chipCat[x];
+		}
+	}
+	std::cout<<"\nERROR, chip '" << s << "' not found. \nIt needs to be included.\n";
+ 	exit(EXIT_FAILURE);
+
+}
+
 void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[], uint8_t busSize, int frequency)
 {
 	for(int i = 0; i<chips.size; i++)

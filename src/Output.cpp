@@ -32,4 +32,5 @@ LED :: LED(Session* session, std::string n, Wiring* in)
 	wires.Push(in);
 	wirestate = 0;
 	name = n;
+	std::cout<<"\nLED created...";
 }

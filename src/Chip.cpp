@@ -5,20 +5,35 @@
 
 Chip::Chip(std::string n, Session* session, bool cat)
 {
-	std::cout << "\n Chip instatiated...";
 	LinkedSession = session;
 	ChipID = LinkedSession ->ChipCount;
 	timestep = LinkedSession -> timestep;
 	name = n;
 	if(cat == 0)
-	LinkedSession -> AddChip(this);
+		LinkedSession -> AddChip(this);
  	else
-	LinkedSession -> CatChip("poop", this);
+		LinkedSession -> CatChip(this);
+	std::cout << "\n Chip instatiated...";
 }
 
 Chip::Chip()
 {
-	std::cout << "Chip instantiated without a Linked Session!";
+	std::cout << "\nChip instantiated without a Linked Session!";
+}
+
+Chip::Chip(Chip &c)
+{
+	std::cout<<"\nCopying chip from catalogue...";
+	LinkedSession = c.LinkedSession;
+	ChipID = LinkedSession ->ChipCount;
+	timestep = LinkedSession -> timestep;
+	//no copy constructor for BArray.
+	warray = c.warray;
+	garray = c.garray;
+	Inputs = c.Inputs;
+	Outputs = c.Outputs;
+	//--------------
+	LinkedSession->AddChip(this);
 }
 
 void Chip::LinkSession(Session* session)
@@ -46,8 +61,7 @@ void Chip::SpawnComponent(ElectronicObjects type)
 
 	case NAND:  
 	{
-		GateNAND* somegate = new GateNAND();
-		garray.Push(somegate);
+		GateNAND* somegate = new GateNAND("default", this);
 		break;
 	}
 	/*
@@ -79,8 +93,7 @@ void Chip::SpawnComponent(ElectronicObjects type)
 	default: 
 	{
 		std::cout << "default gate created. It doesn't do anything... WHY. \n";
-		GateNAND* somegate = new GateNAND();
-		garray.Push(somegate);
+		GateNAND* somegate = new GateNAND("default", this);
 		break;
 	}
 	}
@@ -92,7 +105,6 @@ void Chip::SpawnComponent(ElectronicObjects type)
 void Chip::PushComponent(Wiring* wire)
 {
 	warray.Push(wire);
-
 }
 
 void Chip::PushComponent(Gate* gate)
@@ -208,14 +220,41 @@ void Chip::DetachWiring(uint32_t wIndex, uint32_t gIndex, char pin)	//detach wir
 	}
 }
 
-void Chip::MarkInput(std::string name, Wiring* wire)
+void Chip::MarkInput(Wiring* wire)
 {
-	Inputs.insert(std::pair<std::string, Wiring*>(name, wire));
+	Inputs.Push(wire);
 }
-void Chip::MarkOutput(std::string name, Wiring* wire)
+void Chip::MarkOutput(Wiring* wire)
 {
-	Outputs.insert(std::pair<std::string, Wiring*>(name, wire));
+	Outputs.Push(wire);
 }	
+
+void Chip::transferIO(Wiring **w)
+{
+
+}
+Wiring* Chip::searchWarray(std::string s)
+{
+	for(int x = 0; x < warray.size; x++)
+	{
+		if(warray[x]->name == s)
+			return warray[x];
+
+	}
+	return nullptr;
+}
+Gate* Chip::searchGarray(std::string s)
+{
+	for(int x = 0; x < garray.size; x++)
+	{
+		if(garray[x]->name == s)
+			return garray[x];
+
+	}
+	return nullptr;
+
+
+}
 
 //Simulating logic circuit:
 //wires pass on a signal instantly
@@ -260,9 +299,14 @@ void Chip::ProcessGateque()
 		bool result;
 
 		if(gate->inputs[1] != nullptr)
+		{
 			result = gate->output();
+		}
 		else
-			result = gate->output();
+		{
+			std::cout<<"\nGate input is nullptr! Exiting....";
+			exit(EXIT_FAILURE);
+		}
 
 		if (gate->outputs[0]->state != result)	
 			AmmendWireque(gate->outputs[0]);
