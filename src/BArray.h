@@ -15,6 +15,7 @@ public:
 
 	BArray();
 	~BArray();
+	BArray(BArray &b);
 
 	void ReAlloc(size_t newCapacity);
 
@@ -42,7 +43,14 @@ BArray<T>::BArray()
 template <typename T>
 BArray<T>::~BArray()
 {
-	delete[] Data;
+//	delete[] Data;
+}
+template <typename T>
+BArray<T>::BArray(BArray &b)
+{
+	Data = b.Data;
+	size = b.size;
+	capacity = b.capacity;
 }
 
 template <typename T>

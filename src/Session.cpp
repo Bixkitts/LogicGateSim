@@ -35,8 +35,10 @@ Chip* Session::SearchCat(std::string s)
 
 void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[], uint8_t busSize, int frequency)
 {
+	std::cout << "\nRunning Program...";
 	for(int i = 0; i<chips.size; i++)
 	{
+		std::cout << "\n Init Chip!";
 		chips[i]->ChipInit();
 
 	}

@@ -72,7 +72,7 @@ namespace Hardware 	//A namespace to hold functions and structures that revolve 
 	void declareChip(std::string name);
 	void syntaxError(HDL &hdl);
 	std::string extractFromDelimiter(std::string &s, bool right);
-	Wiring* parsePartParam(std::string &s, Session* session);
+	Wiring* parsePartParam(std::string &s, Chip* chip);
 //-----------------------------------------------------------------//
 }
 

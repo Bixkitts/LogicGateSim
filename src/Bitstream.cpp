@@ -1,5 +1,4 @@
 #include "Bitstream.h"
-#include "ParseFunctions.cpp"
 #include "Chip.h"
 #include "BArray.h"
 #include <map>
@@ -248,8 +247,8 @@ void Hardware::parsePARTS(HDL &hdl, Chip* chip)
 	//of a NAND gate or a freshly created chip
 	//so we can operate on them in an indifferent manner
 	BArray<Wiring*> InOut;
-	int nInputs;
-	int nOutputs;
+	int nInputs = 0;
+	int nOutputs = 0;
 
 	Gate* gate;
 	Chip* newchip;
@@ -293,9 +292,9 @@ void Hardware::parsePARTS(HDL &hdl, Chip* chip)
  			 	InOut.Push(newchip->Outputs[x]);
 				nOutputs++;
 			}
-
 			if(s[i] != ' ')
 				syntaxError(hdl);
+			i++;
 			std::string newName; //The chip is already going to have a name from the catalogue.
 								 //This is the new one that refers to the specific existing instance and not it's Cat entry.
 			i+=readWord(hdl, newName);
@@ -316,26 +315,23 @@ void Hardware::parsePARTS(HDL &hdl, Chip* chip)
 			//In this little block, the parameter is looked up in the chips.
 			std::string sParam;
 			i+=readWord(hdl, sParam);
-			InOut[x] = parsePartParam(sParam, session);
+			InOut[x] = parsePartParam(sParam, chip);
 
 			if(s[i] != ',')
 				syntaxError(hdl);
 			
 		i+=2;	
 		}
-		
 		for(int x = nInputs; x <= InOut.size; x++)
 		{
-			std::cout<<"\nOutputs read into InOut...";
 			//look through each input parameter.
 			//In this little block, the parameter is looked up in the chips.
 			std::string sParam;
 			i+=readWord(hdl, sParam);
-			InOut[x] = parsePartParam(sParam, session);
+			InOut[x] = parsePartParam(sParam, chip);
 
 			if(s[i] == '}')
 			{
-				std::cout<<"\nbreaking from Outputs loop";
 				break;
 			}
 			if(s[i] != ',')
@@ -378,6 +374,5 @@ void Hardware::parseInclude(HDL &hdl, Session * session)
 	if(s[i] != ';')
 		syntaxError(hdl);
 	i++;
-	skipWhitespace(hdl);
 	std::cout<<"\nparseInclude over\n";
 }

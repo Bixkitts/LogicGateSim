@@ -103,10 +103,11 @@ std::string Hardware::extractFromDelimiter(std::string &s, bool right)
 	return Ret;
 }
 
-Wiring* Hardware::parsePartParam(std::string &s, Session* session)
+Wiring* Hardware::parsePartParam(std::string &s, Chip* chip)
 {
-	Chip* chip = session->chips[0];
-	Wiring* iParam = chip->searchWarray(s);
+	Session* session = chip->LinkedSession;
+	Wiring* iParam = nullptr;
+	iParam = chip->searchWarray(s);
 	if(iParam == nullptr)
 		iParam = chip->searchGarray(s)->outputs[0];
 	if(iParam == nullptr)
