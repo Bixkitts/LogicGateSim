@@ -38,7 +38,6 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[
 	std::cout << "\nRunning Program...";
 	for(int i = 0; i<chips.size; i++)
 	{
-		std::cout << "\n Init Chip!";
 		chips[i]->ChipInit();
 
 	}
@@ -57,8 +56,8 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[
 				chips[chipID] -> Impulse(wIndex[j], bit);
 			}
 		}
-		ProcessChip(0);
-/*
+		
+
 		for(int j = 0; j < ChipCount; j++)
 		{
 			threads.push_back(std::thread(&Session::ProcessChip, this, j));
@@ -70,7 +69,7 @@ void Session::RunProgram(char* program, int length, int chipID, uint64_t wIndex[
 				t.join();
 			}
 		}
-		*/
+		
 		ProcessOutputs();	
 		//threads.clear();
 		AdvanceTimestep();

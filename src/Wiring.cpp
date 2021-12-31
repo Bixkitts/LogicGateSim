@@ -73,10 +73,12 @@ void Wiring::setState(bool s)	//sets the state of this wire but also all those a
 
 void Wiring::toggleState()	//toggles the state of this wire but also all those attached. The state is changed so it adds it's gate to the gateque if it outputs to a gate
 {
+	std::cout << "\n WIRE n: " << name << " Chipname: " << LinkedChip->name << ". TOGGLE STATE...";
 	state = !state;
 	LinkedChip->AmmendGateque(LinkedGate);
 	for (int i = 0; i < LinkedWires.size; i++)
 	{
 		LinkedWires[i]->toggleState();
+		std::cout<<"\n Toggling state of child wire....\n";
 	}
 }

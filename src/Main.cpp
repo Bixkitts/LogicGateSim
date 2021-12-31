@@ -7,7 +7,6 @@ int main(int argc, char *argv[])
 	Hardware::HDL file = Hardware::loadHDL(argv[1]);
 	Hardware::parseHDL(file, CurrentSession, 0);
 	LED LED1(CurrentSession, "LED1", CurrentSession->chips[0]->Outputs[0]);
-	
 	char max = 24;
     char program[2] = { 0x00, max };
 	uint64_t wireindexes[1] = { 0 };

@@ -29,9 +29,22 @@ Chip::Chip(Chip &c)
 	timestep = LinkedSession -> timestep;
 	//no copy constructor for BArray.
 	warray = c.warray;
+	for(int i = 0; i < warray.size; i++)
+	{
+		warray[i]->LinkedChip = this;
+	}
 	garray = c.garray;
 	Inputs = c.Inputs;
+	for(int i = 0; i < Inputs.size; i++)
+	{
+		Inputs[i]->LinkedChip = this;
+	}
 	Outputs = c.Outputs;
+	for(int i = 0; i < Outputs.size; i++)
+	{
+		Outputs[i]->LinkedChip = this;
+	}
+
 	//--------------
 	LinkedSession->AddChip(this);
 }
@@ -231,7 +244,16 @@ void Chip::MarkOutput(Wiring* wire)
 
 void Chip::transferIO(Wiring **w)
 {
-
+ 	for(int i = 0; i < Inputs.size; i++)
+	{
+		Inputs[i] = w [i];
+	}
+	int o = Inputs.size;
+ 	for(int i = 0; i < Outputs.size; i++)
+	{
+		Outputs[o] = w [o];
+		o++;
+	}
 }
 Wiring* Chip::searchWarray(std::string s)
 {
