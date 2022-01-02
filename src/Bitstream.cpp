@@ -324,11 +324,13 @@ void Hardware::parsePARTS(HDL &hdl, Chip* chip)
 		}
 		for(int x = nInputs; x <= InOut.size; x++)
 		{
-			//look through each input parameter.
+			//look through each output parameter.
 			//In this little block, the parameter is looked up in the chips.
 			std::string sParam;
 			i+=readWord(hdl, sParam);
 			InOut[x] = parsePartParam(sParam, chip);
+			
+			std::cout<<"\n Chip/NAND declared in PARTS outputting to " << InOut[x]->name << " on chip " << chip->name;
 
 			if(s[i] == '}')
 			{
@@ -349,7 +351,7 @@ void Hardware::parsePARTS(HDL &hdl, Chip* chip)
 		if(isChip == 0)
 			gate->transferIO(&InOut[0]);
 		else
-			chip->transferIO(&InOut[0]);
+			newchip->transferIO(&InOut[0]);
 
 		if(s[i] == '}')
 			partsListed = 1;

@@ -246,12 +246,13 @@ void Chip::transferIO(Wiring **w)
 {
  	for(int i = 0; i < Inputs.size; i++)
 	{
-		Inputs[i] = w [i];
+		Inputs[i]->addInput(w[i]);
 	}
 	int o = Inputs.size;
  	for(int i = 0; i < Outputs.size; i++)
 	{
-		Outputs[o] = w [o];
+		std::cout << "\nTransferred an Output to chip " << name << "\n";
+		Outputs[i]->addOutput(w [o]);
 		o++;
 	}
 }
