@@ -1,3 +1,8 @@
+# ATTENTION
+This like literally my first project ever.
+I shudder to think of the OOP horrors that lurk within,
+but it's here for archival reasons.
+
 # LogicGateSim
 A logic gate simulator.
 Create a series of basic logic gates and have them compute a binary program.
